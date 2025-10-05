@@ -1,27 +1,46 @@
+
 let gameID;
+let resultGames = document.getElementById("resultAllGames");
 let time;
 let wrVideo;
 let select = document.getElementById("categorySelect");
 let varDiv;
-let flag;
 
 async function searchGame()
 {
+    resultGames.innerHTML = "";
 
     let userGame = document.getElementById("gameSearch").value.toLowerCase();
 
     const gameAPI = await fetch(`https://www.speedrun.com/api/v1/games?name=${userGame}`)
 
-    const data = await gameAPI.json();
+    const gameData = await gameAPI.json();
 
-    let currGame = data.data.find(g => g.names.international.toLowerCase() == userGame);
 
-    if (!currGame) {
-    console.log("Гру не знайдено!");
-    return;
-  }
+    for (let i = 0; i < gameData.data.length; i++)
+    {
+        if (gameData.data[i].names.international.toLowerCase().includes(userGame.toLowerCase()))
+        {
+            let gameName = document.createElement("label");
+            gameName.textContent = gameData.data[i].names.international;
+            gameName.name = gameData.data[i].names.international;
+            gameName.id = gameData.data[i].id;
+            gameName.style.margin = 5 + "px";
+            gameName.style.padding = 5 + "px";
+            gameName.className = "marhey-text"
+            gameName.dataset.game = JSON.stringify(gameData.data[i]);
+            gameName.onclick = clickGame;
+            resultGames.append(gameName);
+
+        }
+    }
 
     
+}
+
+async function clickGame()
+{
+    let currGame = JSON.parse(this.dataset.game);
 
     select.innerHTML = "";
 
@@ -101,7 +120,7 @@ async function searchGame()
     {
         select.value = select.options[0].value;
         select.onchange();
-        getLeaderboard();
+        //getLeaderboard();
     }
 
 
@@ -112,131 +131,130 @@ async function searchGame()
     gameName.innerHTML = currGame.names.international;
 
     gameCover.src = currGame.assets["cover-large"].uri
-    gameCover.style.opacity = 1;
+    gameCover.style.display = "inline";
 
     select.style.display = "block";
 }
 
-async function getLeaderboard()
-{
 
+async function getLeaderboard() {
     let categoryID = select.value;
-
     let varDiv = document.getElementById(`${categoryID}-variables`);
+    const playersDiv = document.getElementById("players");
 
+    // Очищаємо попередніх гравців
+    playersDiv.innerHTML = "";
+
+    // Збираємо параметри змінних
     let queryParams = [];
-
-    if (varDiv)
-    {
+    if (varDiv) {
         let varSelects = varDiv.querySelectorAll("select");
-        varSelects.forEach(sel =>
-        {
-            if (sel.value)
-            {
-                queryParams.push(sel.value);
-            }
-        })
+        varSelects.forEach(sel => {
+            if (sel.value) queryParams.push(sel.value);
+        });
     }
 
+    // Формуємо URL для лідерборду
     let leaderboardUrl = `https://www.speedrun.com/api/v1/leaderboards/${gameID}/category/${categoryID}`;
-
-    if (queryParams.length > 0)
-        {
-            leaderboardUrl += "?" + queryParams.join("&");
-        }
+    if (queryParams.length > 0) leaderboardUrl += "?" + queryParams.join("&");
 
     const leaderboardAPI = await fetch(leaderboardUrl);
-
     const leaderboardData = await leaderboardAPI.json();
 
-    if (leaderboardData.data.runs[0].run.videos && leaderboardData.data.runs[0].run.videos.links && leaderboardData.data.runs[0].run.videos.links.length > 0)
+    // Обробка відео WR
+    const run = leaderboardData.data.runs[0].run;
+    if (run.videos && run.videos.links && run.videos.links.length > 0)
     {
-        let url = leaderboardData.data.runs[0].run.videos.links[0].uri;
-
-        
-
-        console.log("Фінальний URL:", url);
-
-        let videoID;
-
+        let url = run.videos.links[0].uri;
+        console.log(url);
+        let videoID, embedURL;
+    
         if (url.includes("youtu.be/"))
         {
             videoID = url.split("youtu.be/")[1];
+            embedURL = `https://www.youtube.com/embed/${videoID}`;
         }
 
         else if (url.includes("watch?v="))
         {
-            videoID = url.split("v=")[1];
-            videoID = videoID.split("&")[0];
+            videoID = url.split("v=")[1].split("&")[0];
+            embedURL = `https://www.youtube.com/embed/${videoID}`;
         }
 
-        let embedURL = `https://www.youtube.com/embed/${videoID}`;
-
-        let gameBody = document.getElementById("gameBody");
-
-        let oldVideo = document.getElementById("wrVideo");
-        if (oldVideo)
+        else if (url.includes("twitch.tv/videos/"))
         {
-            oldVideo.remove();
+            videoID = url.split("twitch.tv/videos/")[1];
+            embedURL = `https://player.twitch.tv/?video=${videoID}&parent=127.0.0.1`; 
         }
 
-        wrVideo = document.createElement("iframe");
-        wrVideo.id = "wrVideo";
+        if (videoID) {
+            let oldVideo = document.getElementById("wrVideo");
+            if (oldVideo) oldVideo.remove();
 
-        wrVideo.src = embedURL;
-        wrVideo.width = "50%";
-        wrVideo.height = "500px";
+            wrVideo = document.createElement("iframe");
+            wrVideo.id = "wrVideo";
+            wrVideo.src = embedURL;
+            wrVideo.width = "50%";
+            wrVideo.height = "500px";
+            wrVideo.allowFullscreen = "true";
 
-        gameBody.appendChild(wrVideo);
+            document.getElementById("gameBody").appendChild(wrVideo);
+        }
     }
-
     else
     {
-        alert("This run doesn't have video!");
+        console.log("This run doesn't have video!");
     }
 
-    let username = document.getElementById("lbUsername");
+    // Виводимо гравців
+    const addedPlayers = new Set();
+    for (let user of run.players) {
+        if (user.rel !== "user") continue; // тільки реальні користувачі
+        if (!user.id) continue;
+        if (addedPlayers.has(user.id)) continue;
 
-    let userID = leaderboardData.data.runs[0].run.players[0].id;
-
-    const UserAPI = await fetch(`https://www.speedrun.com/api/v1/users/${userID}`);
-
-    const userData = await UserAPI.json();
-
-    username.innerHTML = userData.data.names.international;
-
-    if (userData.data.location && userData.data.location.country)
-    {
-        let oldFlag = document.getElementById("flagIMG");
-        if (oldFlag)
-        {
-            oldFlag.remove();
-        }
-        flag = document.createElement("img");
-        flag.id = "flagIMG"
-        let flagCode = userData.data.location.country.code;
-        flagCode = flagCode.replace("/", "-");
-        flag.src = `https://flagcdn.com/h40/${flagCode}.png`
-
-        let userBody = document.getElementById("user");
-        userBody.appendChild(flag);
+        addedPlayers.add(user.id);
+        await addPlayer(user.id);
     }
 
-    else
-    {
-        flag.remove();
-    }
-
-    
-
-    time = leaderboardData.data.runs[0].run.times.primary_t;
-
-    let currTime = timeConventer(time);
-
-    let lbTime = document.getElementById("lbTime");
-
-    lbTime.innerHTML = currTime;
+    // Відображення часу WR
+    time = run.times.primary_t;
+    document.getElementById("lbTime").innerHTML = timeConventer(time);
 }
+
+
+async function addPlayer(id) {
+    const playersDiv = document.getElementById("players");
+
+    // Перевіряємо, чи гравець вже доданий
+    if (playersDiv.querySelector(`[data-user-id='${id}']`)) return;
+
+    const player = document.createElement("div");
+    player.className = "playerStyle";
+    player.dataset.userId = id; // зберігаємо ID для унікальності
+
+    const userAPI = await fetch(`https://www.speedrun.com/api/v1/users/${id}`);
+    const userData = await userAPI.json();
+
+    // Додаємо ім'я
+    const username = document.createElement("label");
+    username.className = "marhey-text";
+    username.id = "lbUsername";
+    username.textContent = userData.data.names.international;
+    player.appendChild(username);
+
+    // Додаємо прапор, якщо є
+    if (userData.data.location?.country) {
+        const flag = document.createElement("img");
+        flag.className = "flagIMG";
+        let flagCode = userData.data.location.country.code.replace("/", "-");
+        flag.src = `https://flagcdn.com/h40/${flagCode}.png`;
+        player.appendChild(flag);
+    }
+
+    playersDiv.appendChild(player);
+}
+
 
 function timeConventer(t)
 {
