@@ -33,6 +33,8 @@
 #gameCover
 {
     display: none;
+    max-width: 400px;
+    max-height: 650px;
 }
 body
 {

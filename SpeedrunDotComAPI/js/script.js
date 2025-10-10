@@ -120,7 +120,6 @@ async function clickGame()
     {
         select.value = select.options[0].value;
         select.onchange();
-        //getLeaderboard();
     }
 
 
@@ -142,10 +141,8 @@ async function getLeaderboard() {
     let varDiv = document.getElementById(`${categoryID}-variables`);
     const playersDiv = document.getElementById("players");
 
-    // Очищаємо попередніх гравців
     playersDiv.innerHTML = "";
 
-    // Збираємо параметри змінних
     let queryParams = [];
     if (varDiv) {
         let varSelects = varDiv.querySelectorAll("select");
@@ -154,14 +151,12 @@ async function getLeaderboard() {
         });
     }
 
-    // Формуємо URL для лідерборду
     let leaderboardUrl = `https://www.speedrun.com/api/v1/leaderboards/${gameID}/category/${categoryID}`;
     if (queryParams.length > 0) leaderboardUrl += "?" + queryParams.join("&");
 
     const leaderboardAPI = await fetch(leaderboardUrl);
     const leaderboardData = await leaderboardAPI.json();
 
-    // Обробка відео WR
     const run = leaderboardData.data.runs[0].run;
     if (run.videos && run.videos.links && run.videos.links.length > 0)
     {
@@ -206,10 +201,9 @@ async function getLeaderboard() {
         console.log("This run doesn't have video!");
     }
 
-    // Виводимо гравців
     const addedPlayers = new Set();
     for (let user of run.players) {
-        if (user.rel !== "user") continue; // тільки реальні користувачі
+        if (user.rel !== "user") continue;
         if (!user.id) continue;
         if (addedPlayers.has(user.id)) continue;
 
@@ -217,7 +211,6 @@ async function getLeaderboard() {
         await addPlayer(user.id);
     }
 
-    // Відображення часу WR
     time = run.times.primary_t;
     document.getElementById("lbTime").innerHTML = timeConventer(time);
 }
@@ -226,12 +219,11 @@ async function getLeaderboard() {
 async function addPlayer(id) {
     const playersDiv = document.getElementById("players");
 
-    // Перевіряємо, чи гравець вже доданий
     if (playersDiv.querySelector(`[data-user-id='${id}']`)) return;
 
     const player = document.createElement("div");
     player.className = "playerStyle";
-    player.dataset.userId = id; // зберігаємо ID для унікальності
+    player.dataset.userId = id;
 
     const userAPI = await fetch(`https://www.speedrun.com/api/v1/users/${id}`);
     const userData = await userAPI.json();
@@ -243,7 +235,6 @@ async function addPlayer(id) {
     username.textContent = userData.data.names.international;
     player.appendChild(username);
 
-    // Додаємо прапор, якщо є
     if (userData.data.location?.country) {
         const flag = document.createElement("img");
         flag.className = "flagIMG";
