@@ -11,23 +11,25 @@
     display: flex;
     justify-content: center;
     font-size: 48px;
+    color: rgb(230, 230, 230);
 }
 #searchUI
 {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    justify-content: space-around;
+    flex-direction: column;
+    justify-content: start;
 }
 .searchItem
 {
-    margin: 10px;
+    margin-right: 10px;
 }
 
 #gameSearch
 {
-    width: 500px;
-    height: 25px;
+    width: 30%;
+    height: 35px;
+    border-radius: 10px;
+    font-size: 20px;
 }
 
 #gameCover
@@ -35,10 +37,12 @@
     display: none;
     max-width: 400px;
     max-height: 650px;
+    border-radius: 15px;
 }
 body
 {
-    background: linear-gradient(rgb(255,255,255), rgb(155,155,155));
+    background: linear-gradient(to bottom, rgb(6, 71, 137), rgb(118, 146, 255));
+    /* background: linear-gradient(to bottom, rgb(118, 146, 255), rgb(89, 60, 143)); */
     background-attachment: fixed;
 }
 
@@ -48,13 +52,14 @@ body
 
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* align-items: center; */
 }
 
 #gameName
 {
     font-size: 48px;
     text-align: center;
+    color: rgb(230, 230, 230);
 }
 
 #gameBody
@@ -69,7 +74,8 @@ body
 #categorySelect
 {
     width: max-content;
-    height: 25px;
+    height: 30px;
+    font-size: 18px;
     display: none;
 }
 
@@ -83,11 +89,13 @@ body
 #lbUsername
 {
     font-size: 32px;
+    color: rgb(230, 230, 230);
 }
 
 #lbTime
 {
     font-size: 48px;
+    color: rgb(230, 230, 230);
 }
 .categoryItems
 {
@@ -110,14 +118,23 @@ body
 #subCategories
 {
     display: flex;
-    height: 15vh;
+    flex-direction: column;
+    height: 10vh;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 #searchBt
 {
-    height: 30px;
+    height: 40px;
+    width: 125px;
+    border-radius: 10px;
+    font-size: 22px;
+    background: linear-gradient(to bottom right, rgb(0, 150, 255), rgb(79, 18, 113));
+    color: rgb(230, 230, 230);
+    border: 2px, solid rgb(230, 230, 230);
 }
 
 #resultAllGames
@@ -125,9 +142,12 @@ body
     display: flex;
     flex-direction: column;
     border: 2px solid black;
-    width: 450px;
-    height: 450px;
+    width: 30%;
+    height: 50vh;
     overflow: auto;
+    margin-top: 10px;
+    border-radius: 5px;
+    background-color: #fff;
 }
 .playerStyle
 {
@@ -144,4 +164,21 @@ body
     align-items: center;
     max-width: 500px;
     flex-wrap: wrap;
+}
+
+.currVar
+{
+    flex-wrap: wrap;
+    justify-content: center;
+    width: max-content;
+    height: 30px;
+    gap: 5px;
+}
+.subSelects
+{
+    font-size: 18px;
+}
+#wrVideo
+{
+    border: 3px solid rgb(230, 230, 230);
 }

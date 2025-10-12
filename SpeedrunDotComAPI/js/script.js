@@ -3,7 +3,8 @@ let gameID;
 let resultGames = document.getElementById("resultAllGames");
 let time;
 let wrVideo;
-let select = document.getElementById("categorySelect");
+let lbNoRuns;
+let mainCategory = document.getElementById("categorySelect");
 let varDiv;
 
 async function searchGame()
@@ -42,7 +43,7 @@ async function clickGame()
 {
     let currGame = JSON.parse(this.dataset.game);
 
-    select.innerHTML = "";
+    mainCategory.innerHTML = "";
 
     document.querySelectorAll('[id$="-variables"]').forEach(div => div.remove());
 
@@ -60,12 +61,19 @@ async function clickGame()
             let option = document.createElement("option");
             option.value = category.id;
             option.text = category.name;
-            select.appendChild(option);
+            mainCategory.appendChild(option);
+
+            let subCategory = document.createElement("div");
+            subCategory.className = "currSubCategory";
+
+
 
             varDiv = document.createElement("div");
             varDiv.id = `${category.id}-variables`;
+            varDiv.className = "currVar";
             varDiv.style.display = "none";
-            document.getElementById("subCategories").appendChild(varDiv);
+            subCategory.appendChild(varDiv);
+            document.getElementById("subCategories").appendChild(subCategory);
 
             
             const variablesAPI = await fetch(`https://www.speedrun.com/api/v1/categories/${category.id}/variables`);
@@ -78,6 +86,7 @@ async function clickGame()
                 let subSelect = document.createElement("select");
                 subSelect.id = variable.id;
                 subSelect.name = variable.name;
+                subSelect.classList.add("subSelects", "marhey-text");
 
                 let emptyOpinion = document.createElement("option");
                 emptyOpinion.value = "";
@@ -102,13 +111,13 @@ async function clickGame()
         
     }
 
-    select.onchange = () =>
+    mainCategory.onchange = () =>
     {
         const allVarDivs = document.querySelectorAll("[id$='variables']");
         allVarDivs.forEach(d => d.style.display = "none");
 
-        const selectedDiv = document.getElementById(`${select.value}-variables`);
-        if (selectedDiv) selectedDiv.style.display = "block";
+        const selectedDiv = document.getElementById(`${mainCategory.value}-variables`);
+        if (selectedDiv) selectedDiv.style.display = "flex";
 
         getLeaderboard();
 
@@ -116,10 +125,10 @@ async function clickGame()
     };
 
     
-    if (select.options.length > 0)
+    if (mainCategory.options.length > 0)
     {
-        select.value = select.options[0].value;
-        select.onchange();
+        mainCategory.value = mainCategory.options[0].value;
+        mainCategory.onchange();
     }
 
 
@@ -132,12 +141,12 @@ async function clickGame()
     gameCover.src = currGame.assets["cover-large"].uri
     gameCover.style.display = "inline";
 
-    select.style.display = "block";
+    mainCategory.style.display = "block";
 }
 
 
 async function getLeaderboard() {
-    let categoryID = select.value;
+    let categoryID = mainCategory.value;
     let varDiv = document.getElementById(`${categoryID}-variables`);
     const playersDiv = document.getElementById("players");
 
@@ -161,7 +170,11 @@ async function getLeaderboard() {
     if (run.videos && run.videos.links && run.videos.links.length > 0)
     {
         let url = run.videos.links[0].uri;
-        console.log(url);
+
+        if (!url)
+        {
+            alert("No runs found");
+        }
         let videoID, embedURL;
     
         if (url.includes("youtu.be/"))
@@ -228,7 +241,6 @@ async function addPlayer(id) {
     const userAPI = await fetch(`https://www.speedrun.com/api/v1/users/${id}`);
     const userData = await userAPI.json();
 
-    // Додаємо ім'я
     const username = document.createElement("label");
     username.className = "marhey-text";
     username.id = "lbUsername";
