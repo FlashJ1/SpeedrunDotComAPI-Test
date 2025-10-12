@@ -182,3 +182,8 @@ body
 {
     border: 3px solid rgb(230, 230, 230);
 }
+#userSearch
+{
+    display: flex;
+    align-items: center;
+}
